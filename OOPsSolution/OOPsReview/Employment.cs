@@ -15,6 +15,7 @@ namespace OOPsReview
         //a data member does not have any built-in validation
         private string _Title;
         private double _Years;
+        private SupervisoryLevel _Level;
 
         //Properties
         //are associated with a single piece of data.
@@ -69,6 +70,9 @@ namespace OOPsReview
             {
                 if(string.IsNullOrWhiteSpace(value))
                 {
+                    //the class does not write to the console
+                    //the class with throw an exception that is to be handled
+                    //  by the outside user
                     throw new ArgumentNullException("Title", "Title cannot be empty or just blanks");
                 }
                 else
@@ -98,6 +102,41 @@ namespace OOPsReview
                 _Years = value;
             }
         }
+
+        ///<summary>
+        ///Property: StartDate
+        ///validation: none
+        ///set access: private
+        ///</summary>
+        //since the access to this property for the mutator is private ANY validation
+        //  for this data will need to be done elsewhere
+        //possible locations for the validation could be in
+        //  a) a constructor
+        //  b) any method that will alter the data
+        //a private mutator will NOT allow alteration of the data via a property for the
+        //  outside user, however, methods within the class will still be able to
+        //  use the property
+        
+
+        //this property can be coded as an auto-implemented property
+        //the private is independent of the auto-implemented property
+        public DateTime StartDate { get; private set; }
+
+        ///<summary>
+        ///Property: Level
+        ///validation: none
+        ///datatype: this is an enum (SupervisoryLevel)
+        ///</summary>
+
+        //can an auto-implemented be coded as a fully implemented
+        public SupervisoryLevel Level
+        {
+            //get;set;
+            get { return _Level; }
+            set { _Level = value; }
+        }
+
+
         //Constructors
 
 
