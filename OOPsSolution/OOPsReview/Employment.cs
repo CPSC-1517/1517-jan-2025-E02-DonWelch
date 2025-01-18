@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+
 namespace OOPsReview
 {
     public class Employment
@@ -97,7 +98,10 @@ namespace OOPsReview
             get { return _Years; }
             set
             {
-                if (value < 0)
+                //replace the hard-code validation with a generic utility method
+                //if (value < 0)
+
+                if (!Utilities.IsZeroOrPositive(value))
                     throw new ArgumentException($"The value {value} is not acceptable for years. Years must be 0 or greater.");
                 _Years = value;
             }
