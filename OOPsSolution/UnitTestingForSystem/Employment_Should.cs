@@ -13,7 +13,7 @@ namespace UnitTestingForSystem
         public void Create_New_Default_Instance()
         {
             //Where - Arrange setup
-            string expectedTitle = "Unknown";
+            string expectedTitle = "UnKnown";
             SupervisoryLevel expectedLevel = SupervisoryLevel.TeamMember;
             DateTime expectedStartDate = DateTime.Today;
             double expectedYears = 0;
@@ -96,24 +96,25 @@ namespace UnitTestingForSystem
         }
 
         ////DO NOT use if your class demonstration has made Years set private
-        //[Fact]
-        //public void Change_the_Years()
-        //{
-        //    //Where - Arrange setup
-        //    string Title = "SAS Lead";
-        //    SupervisoryLevel Level = SupervisoryLevel.TeamLeader;
-        //    DateTime StartDate = new DateTime(2020, 10, 24);
-        //    TimeSpan days = DateTime.Today - StartDate;
-        //    double Years = Math.Round((days.Days / 365.2), 1);
-        //    Employment sut = new Employment(Title, Level, StartDate, Years);
-        //    double expectedYears = 4.9;
+        [Fact]
+        public void Change_the_Years()
+        {
+            //Where - Arrange setup
+            string Title = "SAS Lead";
+            SupervisoryLevel Level = SupervisoryLevel.TeamLeader;
+            DateTime StartDate = new DateTime(2020, 10, 24);
+            TimeSpan days = DateTime.Today - StartDate;
+            double Years = Math.Round((days.Days / 365.2), 1);
+            Employment sut = new Employment(Title, Level, StartDate, Years);
+            days = DateTime.Today - new DateTime(2019, 10, 24);
+            double expectedYears = Math.Round((days.Days / 365.2), 1);
 
-        //    //When - Act execution
-        //    sut.CorrectStartDate(new DateTime(2019, 10, 24)) ;
+            //When - Act execution
+            sut.CorrectStartDate(new DateTime(2019, 10, 24));
 
-        //    //Then - Assert check
-        //    sut.Years.Should().Be(expectedYears);
-        //}
+            //Then - Assert check
+            sut.Years.Should().Be(expectedYears);
+        }
 
         //[Fact]
         //public void Set_The_SupervisoryLevel()
@@ -219,7 +220,7 @@ namespace UnitTestingForSystem
         //}
 
         [Fact]
-        public void When_Creaing_New_Greedy_Instance_Throws_StartDate_Future_Exception()
+        public void When_Creating_New_Greedy_Instance_Throws_StartDate_Future_Exception()
         {
             //Where - Arrange setup
             DateTime StartDate = DateTime.Parse("4902/10/24");

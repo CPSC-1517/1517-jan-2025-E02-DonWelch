@@ -168,7 +168,7 @@ namespace OOPsReview
             // this validation is usually within the property
             // you would wish to have valid data values for your internal fields
 
-            Title = "Unknown"; //assigned to meet validation requirements
+            Title = "UnKnown"; //assigned to meet validation requirements
             Level = SupervisoryLevel.TeamMember; //wish to have a different initial value
             StartDate =DateTime.Today; //a meaningful value default 0001/01/01
 
@@ -247,6 +247,12 @@ namespace OOPsReview
         {
             if (CheckDate(startdate))
                 StartDate = startdate;
+            
+            //during the testing of the unit tests, it has been discovered that the number of years
+            //   should also be altered to have a correct timespan
+
+            TimeSpan days = DateTime.Today - StartDate;
+            Years = Math.Round((days.Days / 365.2), 1);
         }
 
         //create a private method to handle duplicate code within a class where the method
@@ -257,7 +263,7 @@ namespace OOPsReview
         {
 
             if (value >= DateTime.Today.AddDays(1))
-                throw new ArgumentException($"The start data of {value} is invalid, dates cannot be in the future");
+                throw new ArgumentException($"The start date of {value} is invalid, dates cannot be in the future");
             return true;
         }
     }
