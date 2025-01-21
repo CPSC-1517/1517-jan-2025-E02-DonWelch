@@ -192,7 +192,7 @@ namespace OOPsReview
         {
             Title = title;
             Level = level;
-            Years = years;
+            //Years = years;
 
             //one could add valiation, especially if the property has a private set  OR the property
             //  is an auto-implemented property that has restrictions
@@ -209,6 +209,21 @@ namespace OOPsReview
             //by using the .Today.AddDays(1) you cover all times on a specific date
             if (CheckDate(startdate))
                 StartDate = startdate;
+
+            //during the testing of the unit tests, it has been discovered that the number of years
+            //   should also be altered to have a correct timespan
+            if (years != 0.0)
+            {
+                Years = years;
+            }
+            else
+            {
+                if (startdate != DateTime.Today)
+                {
+                    TimeSpan days = DateTime.Today - startdate;
+                    Years = Math.Round((days.Days / 365.2), 1);
+                }
+            }
         }
 
         //Methods (aka Behaviours)

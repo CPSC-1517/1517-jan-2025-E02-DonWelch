@@ -59,9 +59,10 @@ namespace UnitTestingForSystem
             DateTime expectedStartDate = new DateTime(2020, 10, 24);
 
             //if code not in greedy constructor, expectedYears will be 0.0
-            double expectedYears = 0.0;
-            //TimeSpan days = DateTime.Today - expectedStartDate;
-            //double expectedYears = Math.Round((days.Days / 365.2), 1);
+            //double expectedYears = 0.0;
+
+            TimeSpan days = DateTime.Today - expectedStartDate;
+            double expectedYears = Math.Round((days.Days / 365.2), 1);
 
             //When - Act execution
             Employment actual = new Employment("  SAS Lead   ", SupervisoryLevel.TeamLeader,
