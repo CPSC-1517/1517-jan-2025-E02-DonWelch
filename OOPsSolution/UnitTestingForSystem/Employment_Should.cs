@@ -17,6 +17,7 @@ namespace UnitTestingForSystem
             SupervisoryLevel expectedLevel = SupervisoryLevel.TeamMember;
             DateTime expectedStartDate = DateTime.Today;
             double expectedYears = 0;
+            string expectedToString = $"{expectedTitle},{expectedLevel},{expectedStartDate.ToString("MMM dd yyyy")},{expectedYears}";
 
             //When - Act execution
             Employment actual = new Employment();
@@ -26,6 +27,7 @@ namespace UnitTestingForSystem
             actual.Level.Should().Be(expectedLevel);
             actual.StartDate.Should().Be(expectedStartDate);
             actual.Years.Should().Be(expectedYears);
+            actual.ToString().Should().Be(expectedToString);
         }
 
         [Fact]
