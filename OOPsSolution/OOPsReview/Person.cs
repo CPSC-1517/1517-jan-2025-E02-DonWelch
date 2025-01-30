@@ -60,6 +60,15 @@ namespace OOPsReview
     
         public void AddEmployment(Employment employment)
         {
+            if (employment == null)
+                throw new ArgumentNullException("Adding Employment", "Employment required, missing employment data. Unable to add employment history. ");
+
+            //do not care to actually receive a copy of the found instance
+            //all this cares for, is there an instance that matches the condition(s)? (looking for a true or false)
+            if (EmploymentPositions.Any(e => e.Title.Equals(employment.Title)
+                                          && e.StartDate == employment.StartDate))
+                throw new ArgumentException("Employment", 
+                                $"Duplicate employment. Employment record with position {employment.Title} on {employment.StartDate}");
             EmploymentPositions.Add(employment);
         }
 

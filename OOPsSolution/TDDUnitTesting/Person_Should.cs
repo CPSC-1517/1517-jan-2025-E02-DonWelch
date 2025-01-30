@@ -340,8 +340,76 @@ namespace TDDUnitTesting
         #endregion
         #region Exception Tests
         //adding a new employment : missing data
+        [Fact]
+        public void Throw_Exception_When_Adding_Employment_With_Missing_Data()
+        {
+            //Arrange
+            //since we are calling a method in an instance, we need an instance
+            Person sut = new Person("Lowand", "Behold", null, null);
+
+            //Act
+            Action action = () => sut.AddEmployment(null);
+
+            //Assert
+            //one can test the contents of the error message being thrown
+            //this is done using the .WithMessage(string) method
+            //a substring of the error message can be checked using *.....* for the string
+            //NOTE: missing either * will result in an Equals test against the entire message NOT just the substring
+            //one can use string interpolation with the creation of the string
+            action.Should().Throw<ArgumentNullException>().WithMessage("*missing employment data*");
+
+        }
         //adding a new employment : data already present
+        [Fact]
+        public void Throw_Exception_Adding_Duplicate_Employment_To_Collection()
+        {
+            //Arrange
+            Employment one = new Employment("PG I", SupervisoryLevel.TeamMember,
+                               DateTime.Parse("2013/10/04"), 6.5);
+            TimeSpan days = DateTime.Today - DateTime.Parse("2020/04/04");
+            double years = Math.Round(days.Days / 365.2, 1);
+            Employment two = new Employment("PG II", SupervisoryLevel.TeamMember,
+                                DateTime.Parse("2020/04/04"), years);
+            Employment three = new Employment("SUP I", SupervisoryLevel.Supervisor,
+                             DateTime.Today);
+            List<Employment> employments = new();
+            employments.Add(one);
+            employments.Add(two);
+            employments.Add(three);
+            Person sut = new Person("Don", "Welch", null, employments);
+
+            //Act
+
+            //try to add three again to the employment collection (duplicate)
+            Action action = () => sut.AddEmployment(three);
+
+            //Assert
+            //using .WithMessage and string interpolation
+            action.Should().Throw<ArgumentException>().WithMessage($"*{three.Title} on {three.StartDate}*");
+
+        }
         //change a person fullname : missing data
+        [Theory]
+        [InlineData(null,"Kase")]
+        [InlineData("", "Kase")]
+        [InlineData("    ", "Kase")]
+        [InlineData("Charity", null)]
+        [InlineData("Charity", "")]
+        [InlineData("Charity", "   ")]
+
+        public void Throw_Exception_When_Changing_FullName_With_Missing_Data(string firstname, string lastname)
+        {
+            //Arrange
+            //since we are calling a method in an instance, we need an instance
+            Person sut = new Person("Lowand", "Behold", null, null);
+
+            //Act
+            Action action = () => sut.ChangeFullName(firstname, lastname);
+
+            //Assert
+            action.Should().Throw<ArgumentNullException>().WithMessage("*is required*");
+
+        }
         #endregion
         #endregion
 
