@@ -45,6 +45,14 @@
 
 <button type="submit" @onclick="OnClear">Clear</button>
 
+<br/><br/>
+
+<label for="inputcontrol">Enter an H for heads or T for tails:</label>
+&nbsp;&nbsp;
+<input type="text" id="inputcontrol" placeholder="eg: H" @bind="inputValue" />
+&nbsp;&nbsp;
+<button type="submit" @onclick="OnFlip" class="btn btn-outline-primary">Flip</button>
+
 @code {
         /*
         * the comment in the block as everything in this coding block is C#
@@ -52,9 +60,60 @@
         */
 
     private string WelcomeMsg = "Let us get started.";
+    private string inputValue = "";
 
     private void OnClear()
     {
+        //this is the event for the button OnClear.
+        //it will execute when the OnClear button is pressed
         WelcomeMsg = "You pressed your clear button.";
+    }
+
+    private void OnFlip()
+    {
+        //this is the event for the button OnFlip.
+        //it will execute when the OnFlip button is pressed
+
+        //play the game Heads (0) or Tails (1)
+        //use the WelcomeMsg to display the results of a flip
+
+        WelcomeMsg = ""; //clear out all old messages
+
+        //use the Random class to generate the flip within the computer
+        Random rnd = new Random();
+        int flip = rnd.Next(0, 2); //values returned are 0 or 1
+
+        if(inputValue.ToUpper().Trim().Equals("H")
+         || inputValue.ToUpper().Trim().Equals("T"))
+        {
+            if (flip == 0)
+            {
+                //heads
+                if(inputValue.ToUpper().Trim().Equals("H"))
+                {
+                    WelcomeMsg = "You guessed the computer flip. You win.";
+                }
+                else
+                {
+                    WelcomeMsg = "You did not guessed the computer flip. You lose.";
+                }
+            }
+            else
+            {
+                //tails
+                 if(inputValue.ToUpper().Trim().Equals("T"))
+                {
+                    WelcomeMsg = "You guessed the computer flip. You win.";
+                }
+                else
+                {
+                    WelcomeMsg = "You did not guessed the computer flip. You lose.";
+                }
+            }
+        }
+        else
+        {
+            WelcomeMsg = "You did not enter an H or T. Try again.";
+        }
     }
 }
