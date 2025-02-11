@@ -78,6 +78,32 @@
         </ul>
     </div>
 }
+
+<!--
+    form area
+    standard html controls
+    use bootstrap for formating
+    each control will be on a separate row
+    each row is stack top to bottom
+-->
+
+<fieldset>
+    <legend>Employment Data</legend>
+    <!--
+        the structure of a row will contain 2 columns
+        1) will contain the label for the data entry
+        2) will contain the input control for the data entry
+    -->
+    <div class="row">
+        <div class="offset-4 col-md-2">
+            <label for="title">Position Title</label>
+        </div>
+        <div class="col-md-2">
+            <input type="text" id="title" @bind="empTitle"
+                    placeholder="enter position" />
+        </div>
+    </div>
+</fieldset>
 @code {
     private string feedBackMsg = "";
 
@@ -89,6 +115,9 @@
     //one could search the dictionary on the TKey value and retreive the TValue string
     //NOTE: the TKey value MUST be unique within the entries of the Dictionary
     Dictionary<string, string> errorMsgs = new Dictionary<string, string>();
+
+    //Employment data variables
+    private string empTitle;
 
     protected override void OnInitialized()
     {
