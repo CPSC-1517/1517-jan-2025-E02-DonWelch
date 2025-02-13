@@ -143,29 +143,29 @@ each row is stack top to bottom
         </div>
         <div class="col-md-2">
             <!-- we wish to select from a set of defined choices
-                this will limit the user to ONLY acceptable values
+            this will limit the user to ONLY acceptable values
             -->
             <select id="levelS" @bind="empLevelS">
                 <!--
-                    there is a line for each item in the Enum
-                    you could hard-code each option tag
+                there is a line for each item in the Enum
+                you could hard-code each option tag
 
-                    the option tag has 2 components:
-                        value: this is the value that will be returned to the control variable
-                        text: this is text that will be display whent the selection list is show
-                    syntax   <option value="somevalue">display Text</option>
-                
+                the option tag has 2 components:
+                value: this is the value that will be returned to the control variable
+                text: this is text that will be display whent the selection list is show
+                syntax   <option value="somevalue">display Text</option>
+
                 <option value="Entry">Entry</option>
                 <option value="TeamMember">TeamMember</option>
                 <option value="TeamLeader">TeamLeader</option>
                 <option value="Supervisor">Supervisor</option>
                 <option value="DepartmentHead">DepartmentHead</option>
                 <option value="Owner">Owner</option>
-            
+
                 -->
                 <!--
-                    you can also access the Enum definition and
-                        extract each enum value (treating the Enum as a collection)
+                you can also access the Enum definition and
+                extract each enum value (treating the Enum as a collection)
                 -->
                 @foreach(var item in Enum.GetValues(typeof(SupervisoryLevel)))
                 {
@@ -184,26 +184,43 @@ each row is stack top to bottom
         </div>
         <div class="col-md-2">
             <!-- we wish to select from a set of defined choices
-                this will limit the user to ONLY acceptable values
+            this will limit the user to ONLY acceptable values
 
-                this control is not a standard html input control
-                this control is a Blazor control
-                this control needs to use bind-value instead of just bind
-                namespace for the Blazor controls is: Microsoft.AspNetCore.Components.Forms
-                    (declare already for you in _Imports.razor)
+            this control is not a standard html input control
+            this control is a Blazor control
+            this control needs to use bind-value instead of just bind
+            namespace for the Blazor controls is: Microsoft.AspNetCore.Components.Forms
+            (declare already for you in _Imports.razor)
             -->
-           <InputRadioGroup Name="supervisoryradio" id="levelR" @bind-Value="empLevelR">
+            <InputRadioGroup Name="supervisoryradio" id="levelR" @bind-Value="empLevelR">
                 @foreach (var item in Enum.GetValues(typeof(SupervisoryLevel)))
                 {
                     //each Enum will consider the value as a string
                     //the value attribute is the value returned when a choice has been made
                     //the string between the opening and closing tag will be displayed to the user
-                   <InputRadio Name="supervisoryradio" Value="@item" /> @item <br/>
+                    <InputRadio Name="supervisoryradio" Value="@item" /> @item <br/>
                 }
-           </InputRadioGroup>
+            </InputRadioGroup>
         </div>
     </div>
     <br />
+    <div class="row">
+        <!--
+        the centering of the buttons on this row was done by using all 12 columns and the
+        class text-center
+        -->
+        <div class="col-md-12 text-center">
+            <button type="submit" class="btn btn-outline-primary rounded-pill"
+            @onclick="OnCollect">
+                Submit
+            </button>
+            &nbsp;&nbsp;
+            <button type="submit" class="btn btn-outline-secondary rounded-pill"
+            @onclick="OnClear">
+                Clear
+            </button>
+        </div>
+    </div>
 </fieldset>
 @code {
     private string feedBackMsg = "";
@@ -235,5 +252,59 @@ each row is stack top to bottom
         //use today's date as the default for StartDate when the page 1st appears
         empStartDate = DateTime.Today;
         base.OnInitialized();
+    }
+
+    private void OnCollect()
+    {
+        //clear out any old messages
+        feedBackMsg = "";
+        errorMsgs.Clear();
+
+        //primitive validation
+        //  presence
+        //  datatype/pattern (Regex)
+        //  range of values
+
+        //Business Rules (aka your validation requirements)
+        //title must be presence, must have at least one character
+        //start date cannot be in the future
+        //years cannot be less than zero
+
+        if(string.IsNullOrWhiteSpace(empTitle))
+        {
+            errorMsgs.Add("Title", "Title is required.");
+        }
+
+        if(empYears < 0)
+        {
+            errorMsgs.Add("Years", "Years cannot be a negative value");
+        }
+
+        if(empStartDate >= DateTime.Today.AddDays(1))
+        {
+            errorMsgs.Add("Date", "Start date cannot be in the future");
+        }
+
+        if(errorMsgs.Count == 0)
+        {
+            //at this point the code assumes the data is valid
+            //further processing of the data can be completed
+            feedBackMsg = $"{empTitle} {empYears} {empStartDate} {empLevelS} {empLevelR}";
+        }
+        
+    }
+
+    private void OnClear()
+    {
+        //clear out any old messages
+        feedBackMsg = "";
+        errorMsgs.Clear();
+
+        //reset the input controls to the opening page defaults
+        empTitle = "";
+        empYears = 0;
+        empStartDate = DateTime.Today;
+        empLevelS = SupervisoryLevel.Entry;
+        empLevelR = SupervisoryLevel.Entry;
     }
 }
