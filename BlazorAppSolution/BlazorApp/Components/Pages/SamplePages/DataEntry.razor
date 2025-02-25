@@ -242,6 +242,14 @@ each row is stack top to bottom
     private SupervisoryLevel empLevelR;
 
 
+    //injected services into your application
+    //the declaration needs to be coded as a property, typically an auto-implemented property
+    //WARNING: you may get a exception on the declaration (red line), if so place a using
+    //  clause at the top of this file (using Microsoft.JSInterop;)
+    [Inject]
+    private IJSRuntime jsRuntime { get; set; }
+
+
     protected override void OnInitialized()
     {
         // feedBackMsg = "this is a success message";
@@ -291,20 +299,34 @@ each row is stack top to bottom
             //further processing of the data can be completed
             feedBackMsg = $"{empTitle} {empYears} {empStartDate} {empLevelS} {empLevelR}";
         }
-        
+
     }
 
-    private void OnClear()
+    //this method is being done as an async task as it has to wait for the user
+    //  to respond
+    //this async task will need a service called JSRunTime
+    //you will need to inject a service into my code
+
+    private async Task OnClear()
     {
         //clear out any old messages
         feedBackMsg = "";
-        errorMsgs.Clear();
 
-        //reset the input controls to the opening page defaults
-        empTitle = "";
-        empYears = 0;
-        empStartDate = DateTime.Today;
-        empLevelS = SupervisoryLevel.Entry;
-        empLevelR = SupervisoryLevel.Entry;
+        //issue a prompt dialogue to the user to obtain confirmation of the action
+        //create your message for the dialogue box into a generic object[]
+        object[] messageline = new object[]
+        {"Clearing will lose all unsaved data. Are you sure you wish to continue?"};
+
+        if (await jsRuntime.InvokeAsync<bool>("confirm", messageline))
+        {
+            errorMsgs.Clear();
+
+            //reset the input controls to the opening page defaults
+            empTitle = "";
+            empYears = 0;
+            empStartDate = DateTime.Today;
+            empLevelS = SupervisoryLevel.Entry;
+            empLevelR = SupervisoryLevel.Entry;
+        }
     }
 }
