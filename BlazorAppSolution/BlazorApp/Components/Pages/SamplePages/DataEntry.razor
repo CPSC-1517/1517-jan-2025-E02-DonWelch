@@ -144,6 +144,12 @@ each row is stack top to bottom
         <div class="col-md-2">
             <!-- we wish to select from a set of defined choices
             this will limit the user to ONLY acceptable values
+
+            another way to bind your controls is directly into
+            an instance of a class
+            using the instance requires your property set to be public
+
+            <select id="levelS" @bind="employment.Level">
             -->
             <select id="levelS" @bind="empLevelS">
                 <!--
@@ -242,12 +248,27 @@ each row is stack top to bottom
     private SupervisoryLevel empLevelR;
 
 
+    //one could use a class definition as the receiving variable
+    //       fields for your controls
+    //if you use this technique then you would need to declare
+    //  your variable with a new (); so that there is an
+    //  instance in existance.
+    private Employment employment = null;
+
     //injected services into your application
     //the declaration needs to be coded as a property, typically an auto-implemented property
     //WARNING: you may get a exception on the declaration (red line), if so place a using
     //  clause at the top of this file (using Microsoft.JSInterop;)
     [Inject]
     private IJSRuntime jsRuntime { get; set; }
+
+    //this variable is required if you are using property injection
+    //  for services available from the system which are not normally included
+    //  for use to your application
+    //this service collection will allow us to find the top of your application
+    [Inject]
+    public IWebHostEnvironment webHostEnvironment { get; set; }
+
 
 
     protected override void OnInitialized()
@@ -260,6 +281,18 @@ each row is stack top to bottom
         //use today's date as the default for StartDate when the page 1st appears
         empStartDate = DateTime.Today;
         base.OnInitialized();
+    }
+
+    private Exception GetInnerException(Exception ex)
+    {
+        //drill down into your Exception until there are no more inner exceptions
+        //at this point you will have the "real" reason for the error
+        while (ex.InnerException != null)
+            ex = ex.InnerException;
+
+        //you now have the real reason for your error (details)
+        //return the details to the call
+        return ex;
     }
 
     private void OnCollect()
@@ -298,6 +331,55 @@ each row is stack top to bottom
             //at this point the code assumes the data is valid
             //further processing of the data can be completed
             feedBackMsg = $"{empTitle} {empYears} {empStartDate} {empLevelS} {empLevelR}";
+
+            //if you are using a class to collect and hold your data
+            //      you need to be concerned with how the class coding handles
+            //      any errors in creating or processing code within the class
+            //this normally means some type of try/catch processing
+            try
+            {
+                //create an instance of Employment to use to write to the data file
+                //the data file record will use the ToString() of Employment
+                //(Note: you could manually in this method create the concatenated string for
+                //      writing)
+                //Remember if an error occurs while creating your instance, the instance will
+                //  throw an exception; which should be caught by the catches below.
+                employment = new Employment(empTitle, empLevelS, empStartDate, empYears);
+
+                //write the class data as a string to a csv text file
+                // required:
+                // a) know the location of the file (name)
+                // b) the technique to use in writing to the file
+                //    there are several ways to write to the file
+                //      a) StreamWriter/StreamReader
+                //      b) using the System.IO.File methods
+                //           (handles the streaming of the data)
+
+                //there are a couple of ways to refer to your file and its path
+                //  i) obtain the root path of your application using an injection
+                //      service called IWebHostEnvironment via property injection (see variables)
+                //  ii) use relative addressing starting a the top of your application (see report page)
+
+                string appPathName = webHostEnvironment.ContentRootPath;
+
+                //WARNING: the folder slash for your path can be both a forward or back slash
+                //              on a PC BUT for an Apple machine, you must use the forward slash (/)
+                string csvFilePathName = $@"{appPathName}/Data/Employment.csv";
+            }
+            
+            catch (ArgumentNullException ex)
+            {
+                errorMsgs.Add("Missing Data", GetInnerException(ex).Message);
+            }
+            catch (ArgumentException ex)
+            {
+                errorMsgs.Add("Invalid Data", GetInnerException(ex).Message);
+            }
+            catch (Exception ex)
+            {
+                errorMsgs.Add("System Error", GetInnerException(ex).Message); 
+            }
+           
         }
 
     }
