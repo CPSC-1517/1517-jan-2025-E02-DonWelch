@@ -217,13 +217,18 @@ each row is stack top to bottom
         -->
         <div class="col-md-12 text-center">
             <button type="submit" class="btn btn-outline-primary rounded-pill"
-            @onclick="OnCollect">
+                    @onclick="OnCollect" style="width:155px;">
                 Submit
             </button>
             &nbsp;&nbsp;
             <button type="submit" class="btn btn-outline-secondary rounded-pill"
-            @onclick="OnClear">
+                    @onclick="OnClear" style="width:155px;">
                 Clear
+            </button>
+            &nbsp;&nbsp;
+            <button type="submit" class="btn btn-outline-secondary rounded-pill"
+            @onclick="OnGoToReport" style="width:155px;">
+                Go To Report
             </button>
         </div>
     </div>
@@ -269,7 +274,9 @@ each row is stack top to bottom
     [Inject]
     public IWebHostEnvironment webHostEnvironment { get; set; }
 
-
+    //this injection is for being able to go grom page A to page B by code
+    [Inject]
+    public NavigationManager navigationManager { get; set; }
 
     protected override void OnInitialized()
     {
@@ -391,7 +398,7 @@ each row is stack top to bottom
                 //here it would be a success message
                 feedBackMsg = "your data has been saved to file.";
             }
-            
+
             catch (ArgumentNullException ex)
             {
                 errorMsgs.Add("Missing Data", GetInnerException(ex).Message);
@@ -404,7 +411,7 @@ each row is stack top to bottom
             {
                 errorMsgs.Add("System Error", GetInnerException(ex).Message); 
             }
-           
+
         }
 
     }
@@ -434,6 +441,25 @@ each row is stack top to bottom
             empStartDate = DateTime.Today;
             empLevelS = SupervisoryLevel.Entry;
             empLevelR = SupervisoryLevel.Entry;
+        }
+    }
+
+    private async Task OnGoToReport()
+    {
+        //clear out any old messages
+        feedBackMsg = "";
+
+        //issue a prompt dialogue to the user to obtain confirmation of the action
+        //create your message for the dialogue box into a generic object[]
+        object[] messageline = new object[]
+        {"Leaving the page will lose all unsaved data. Are you sure you wish to continue?"};
+
+        if (await jsRuntime.InvokeAsync<bool>("confirm", messageline))
+        {
+            //use the property for the service
+            //pages within the web app are known by their routing name
+            //the URI can be the routing name of your desired page.
+            navigationManager.NavigateTo("report");
         }
     }
 }
