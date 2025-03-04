@@ -80,12 +80,15 @@ else
     //     on the div tag is 2 parameters
     //      the class causes the scroll (built into bootstrap)
     //      the style specifies the height of the display area
+    //to stick gthe thead to the top of your table use the following
+    //      styling on the thead tag
+    //           style="position:sticky; top:0; background-color:white;"
 
     //depending on the zoom of window you may seem to lose some of the last line
     <div class="row">
         <div class="offset-3 col-md-6 overflow-scroll" style="height:350px;">
-            <table class="table">
-                <thead>
+            <table class="table table-striped">
+                <thead style="position:sticky; top:0; background-color:white;">
                     <tr>
                         <th>Title</th>
                         <th>Level</th>
@@ -171,7 +174,7 @@ else
         };
 
         //pick the file to test
-        string filename = $"{filePathName}{files[2]}";
+        string filename = $"{filePathName}{files[0]}";
 
         //The System.IO.File method ReadAllLines() will return an array
         //  of lines as strings where each array element represents a
