@@ -1,0 +1,89 @@
+﻿@page "/tablequery"
+<PageTitle>Table Query</PageTitle>
+@rendermode InteractiveServer
+
+<!-- additional namespaces-->
+@using WestWindSystem.BLL;
+@using WestWindSystem.Entities;
+
+<h1>Shipment Query (using scrolling)</h1>
+<h4>... non primary key filter search</h4>
+
+@if (feedBackMsg.Length > 0)
+{
+    <div class="alert alert-info">
+        <p>@feedBackMsg</p>
+    </div>
+}
+
+@if (errorMsgs.Count > 0)
+{
+    <div class="alert alert-danger">
+        <p>Please fix the following issues:</p>
+        <ul>
+            @foreach (var error in errorMsgs)
+            {
+                <li>@error</li>
+            }
+        </ul>
+    </div>
+}
+
+<!-- input form and display table-->
+<div class="row">
+    <div class="col-md-3">
+        <!-- input form controls-->
+        <p><strong>Input query values</strong></p>
+        <label for="year">Enter a year:</label>&nbsp;&nbsp;
+        <input id="year" type="number" @bind="yeararg"
+        placeholder="enter year" style="width:100px;" />
+        <br/><br/>
+        <label for="month">Enter a month:</label>&nbsp;&nbsp;
+        <input id="month" type="number" @bind="montharg"
+        placeholder="enter month" style="width:100px;" />
+        <br/><br/>
+        <button type="submit" class="btn btn-outline-secondary rounded-pill"
+        @onclick="GetShipments">
+            Fetch Shipments
+        </button>
+    </div>
+    <div class="col-md-9">
+        <!-- display table-->
+
+    </div>
+</div>
+
+
+@code {
+    private string feedBackMsg = "";
+    private List<string> errorMsgs = new List<string>();
+
+    //input control variables
+    private int yeararg = 0;
+    private int montharg = 1;
+
+    protected override void OnInitialized()
+    {
+        yeararg = DateTime.Today.Year;
+        montharg = DateTime.Today.Month;
+        base.OnInitialized();
+    }
+
+    private Exception GetInnerException(Exception ex)
+    {
+        //drill down into your Exception until there are no more inner exceptions
+        //at this point you will have the "real" reason for the error
+        while (ex.InnerException != null)
+            ex = ex.InnerException;
+
+        //you now have the real reason for your error (details)
+        //return the details to the call
+        return ex;
+    }
+
+    //event methods
+    private void GetShipments()
+    {
+        feedBackMsg = $"year {yeararg} month {montharg}";
+    }
+}
