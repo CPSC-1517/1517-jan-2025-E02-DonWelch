@@ -49,7 +49,73 @@
     </div>
     <div class="col-md-9">
         <!-- display table-->
+        @if(shipmentList == null)
+        {
+            <p>Enter desired year and month for search</p>
+        }
+        else
+        {
+            <p><strong>Display of query results</strong></p>
+            if(shipmentList.Count == 0)
+            {
+                <p>No data found for year and month arguments in search</p>
+            }
+            else
+            {
+                //this example uses the quick and easy technique of scrolling
+                //Note the table is surrounded by a div tag
+                //     on the div tag is 2 parameters
+                //      the class causes the scroll (built into bootstrap)
+                //      the style specifies the height of the display area
+                //you may wish to stick your table headings using the following style
+                //  style="position:sticky; top:0; background-color:White;"
 
+                //the shipment record has a field called ShipVia which is foreign key (1, 2, 3, etc)
+                //displaying that is meaningless to someone reading the data unless they were familiar with
+                //      the pkey value associated with each company
+                //solution: display the company name
+                //Problem: the name is in a different table
+
+                //If you look at the entities, records with fields used in sql scheme relationships
+                //      have virtual navigational properties (see bottom of entity)
+                //These properties allow you to have access to data in the related table
+
+                //How to use
+
+                //When you use the property just treat it as the name of an object so accessing the
+                //      desired field in the related table just needs the dot (.) operator
+                //In this example, the property is ShipViaNavigation which points to the Shippers table
+                //      and the desired field from the Shippers table was CompanyName
+
+                <div class="overflow-scroll" style="height:400px;">
+                    <table class="table table-striped">
+                        <thead style="position:sticky; top:0; background-color:White;">
+                            <tr>
+                                <th>ID</th>
+                                <td>Order</td>
+                                <td>Date</td>
+                                <td>Shipper</td>
+                                <td>Freight $</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach(var item in shipmentList)
+                            {
+                                <tr>
+                                    <td>@item.ShipmentID</td>
+                                    <td>@item.OrderID</td>
+                                    <td>@item.ShippedDate.ToString("MMM dd,yyyy")</td>
+                                    @*  <td>@item.ShipVia</td> *@
+                                    @* child (shipment) accessing parent (shipper)*@
+                                    <td>@item.ShipViaNavigation.CompanyName</td>
+                                    <td>@(string.Format("{0:#,##0.00}",item.FreightCharge))</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        }
     </div>
 </div>
 
@@ -59,11 +125,34 @@
     private List<string> errorMsgs = new List<string>();
 
     //input control variables
-    private int yeararg = 0;
-    private int montharg = 1;
+    private int yeararg;
+    private int montharg;
+
+    //variable that holds the query result dataset
+    private List<Shipment> shipmentList = null;
+
+    //injections]
+    [Inject]
+    private ShipmentServices _shipmentServices { get; set; }
+
+    // Technique (a)
+    // [Inject]
+    // private ShipperServices _shipperServices { get; set; }
+    // private List<Shipper> shipperList = null;
 
     protected override void OnInitialized()
     {
+        //there are two techniques to allow the use of navigational properties on your page
+        //      a) bring in a dataset of the table to which you are attempting to navigate
+        //      b) use the .Include method on the query itself (see Shipment query for this technique in BLL ShipmentServices)
+
+        // Technique (a)
+        // this data set is needed to handle the navigation reference used on the table data cell
+        //           to display the shipper company name
+        // no other coding is needed, the system will match up the dataset to the usage in the table above
+
+        //shipperList = _shipperServices.Shipper_GetAll();
+
         yeararg = DateTime.Today.Year;
         montharg = DateTime.Today.Month;
         base.OnInitialized();
@@ -84,6 +173,34 @@
     //event methods
     private void GetShipments()
     {
-        feedBackMsg = $"year {yeararg} month {montharg}";
+        feedBackMsg = "";
+        errorMsgs.Clear();
+        shipmentList = null;
+
+        //validate the incoming argument values
+        if (yeararg < 1950 || yeararg > DateTime.Today.Year)
+        {
+            errorMsgs.Add($"Invalid year {yeararg}. Year must be between 1950 and today");
+        }
+        if (montharg < 1 || montharg > 12)
+        {
+            errorMsgs.Add($"Invalid month {montharg}. Month must be between 1 and 12");
+        }
+        if(errorMsgs.Count == 0)
+        {
+            //assume that the incoming values are good
+            //consume the service
+
+            //since the consumption could possible throw an exception
+            //  we need to use "user friendly error handling" techniques
+            try
+            {
+                shipmentList = _shipmentServices.Shipment_GetByYearAndMonth(yeararg, montharg);
+            }
+            catch(Exception ex)
+            {
+                errorMsgs.Add($"System Error: {GetInnerException(ex).Message}");
+            }
+        }
     }
 }
