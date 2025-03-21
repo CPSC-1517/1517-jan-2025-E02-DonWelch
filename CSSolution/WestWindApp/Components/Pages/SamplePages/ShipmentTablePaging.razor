@@ -1,0 +1,257 @@
+﻿@page "/tablepaging"
+<PageTitle>Table Query Paging</PageTitle>
+@rendermode InteractiveServer
+
+<!--
+
+Additional package setup
+
+you will need to add the NuGet package Blazor.BootStrap by vikram reddy (do first)
+you will need to add a using statement
+using BlazorBootstrap
+-->
+
+<!-- additional namespaces-->
+@using BlazorBootstrap;
+@using WestWindSystem.BLL;
+@using WestWindSystem.Entities;
+
+<h1>Shipment Query (using paging)</h1>
+<h4>... non primary key filter search</h4>
+
+@if (feedBackMsg.Length > 0)
+{
+    <div class="alert alert-info">
+        <p>@feedBackMsg</p>
+    </div>
+}
+
+@if (errorMsgs.Count > 0)
+{
+    <div class="alert alert-danger">
+        <p>Please fix the following issues:</p>
+        <ul>
+            @foreach (var error in errorMsgs)
+            {
+                <li>@error</li>
+            }
+        </ul>
+    </div>
+}
+
+<!-- input form and display table-->
+<div class="row">
+    <div class="col-md-3">
+        <!-- input form controls-->
+        <p><strong>Input query values</strong></p>
+        <label for="year">Enter a year:</label>&nbsp;&nbsp;
+        <input id="year" type="number" @bind="yeararg"
+        placeholder="enter year" style="width:100px;" />
+        <br/><br/>
+        <label for="month">Enter a month:</label>&nbsp;&nbsp;
+        <input id="month" type="number" @bind="montharg"
+        placeholder="enter month" style="width:100px;" />
+        <br/><br/>
+        <button type="submit" class="btn btn-outline-secondary rounded-pill"
+        @onclick="GetShipments">
+            Fetch Shipments
+        </button>
+    </div>
+    <div class="col-md-9">
+        <!-- display table-->
+        @if(shipmentList == null)
+        {
+            <p>Enter desired year and month for search</p>
+        }
+        else
+        {
+            <p><strong>Display of query results</strong></p>
+            if(shipmentList.Count == 0)
+            {
+                <p>No data found for year and month arguments in search</p>
+            }
+            else
+            {
+                //table
+                //to reduce the number of data rows being displayed there are two techniques
+                //a) pagination
+                //b) scrolling
+
+                //this example uses the Bootstrap Pagination tag:
+                //Required
+                //      total records possibly returned: totalItems
+                //      total required pages depending on totalItems: GetTotalPage()
+                //      current page number: currentPageNumber
+                //      items per page: itemsPerPage
+                //      collection to hold records that will be displayed
+
+                //the shipment record has a field called ShipVia which is foreign key (1, 2, 3, etc)
+                //displaying that is meaningless to someone reading the data unless they were familiar with
+                //      the pkey value associated with each company
+                //solution: display the company name
+                //Problem: the name is in a different table
+
+                //If you look at the entities, records with fields used in sql scheme relationships
+                //      have virtual navigational properties (see bottom of entity)
+                //These properties allow you to have access to data in the related table
+
+                //How to use
+
+                //When you use the property just treat it as the name of an object so accessing the
+                //      desired field in the related table just needs the dot (.) operator
+                //In this example, the property is ShipViaNavigation which points to the Shippers table
+                //      and the desired field from the Shippers table was CompanyName
+
+
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <td>Order</td>
+                            <td>Date</td>
+                            <td>Shipper</td>
+                            <td>Freight $</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach(var item in shipmentList)
+                        {
+                            <tr>
+                                <td>@item.ShipmentID</td>
+                                <td>@item.OrderID</td>
+                                <td>@item.ShippedDate.ToString("MMM dd,yyyy")</td>
+                                @*  <td>@item.ShipVia</td> *@
+                                @* child (shipment) accessing parent (shipper)*@
+                                <td>@item.ShipViaNavigation.CompanyName</td>
+                                <td>@(string.Format("{0:#,##0.00}",item.FreightCharge))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <!--
+                this tag will display 5 page numbers at a time
+                it contains the usual First Previous page numbers Next Last layout
+                HOWEVER, it does not adjust the page numbers to have a continious
+                display of pages like  4 5 6 7 8
+                instead it is 1 2 3 4 5 then 6 7 8 9 10 then 11 12 ..
+                but if you look at the first/last number there is a small space
+                near the top of the display that is empty and can be clicked
+                as if it is the expected ... normally displayed
+
+                remember this control tag is TOTALLY independent of the table
+                -->
+                <Pagination ActivePageNumber="currentPageNumber"
+                TotalPages="GetTotalPages()"
+                PageChanged="OnPageChanged">
+                </Pagination>
+            }
+        }
+    </div>
+</div>
+
+
+@code {
+    private string feedBackMsg = "";
+    private List<string> errorMsgs = new List<string>();
+
+    //input control variables
+    private int yeararg;
+    private int montharg;
+
+    //variable that holds the query result dataset
+    private List<Shipment> shipmentList = null;
+
+    //injections]
+    [Inject]
+    private ShipmentServices _shipmentServices { get; set; }
+
+    // Technique (a)
+    // [Inject]
+    // private ShipperServices _shipperServices { get; set; }
+    // private List<Shipper> shipperList = null;
+
+    //pagination
+    private int totalItems = 0;
+    private int currentPageNumber = 1;
+    private int itemsPerPage = 10; //this decision is upto the developer
+
+    protected override void OnInitialized()
+    {
+        //there are two techniques to allow the use of navigational properties on your page
+        //      a) bring in a dataset of the table to which you are attempting to navigate
+        //      b) use the .Include method on the query itself (see Shipment query for this technique in BLL ShipmentServices)
+
+        // Technique (a)
+        // this data set is needed to handle the navigation reference used on the table data cell
+        //           to display the shipper company name
+        // no other coding is needed, the system will match up the dataset to the usage in the table above
+
+        //shipperList = _shipperServices.Shipper_GetAll();
+
+        yeararg = DateTime.Today.Year;
+        montharg = DateTime.Today.Month;
+        base.OnInitialized();
+    }
+
+    private Exception GetInnerException(Exception ex)
+    {
+        //drill down into your Exception until there are no more inner exceptions
+        //at this point you will have the "real" reason for the error
+        while (ex.InnerException != null)
+            ex = ex.InnerException;
+
+        //you now have the real reason for your error (details)
+        //return the details to the call
+        return ex;
+    }
+
+    //event methods
+    private void GetShipments()
+    {
+        feedBackMsg = "";
+        errorMsgs.Clear();
+        shipmentList = null;
+
+        //validate the incoming argument values
+        if (yeararg < 1950 || yeararg > DateTime.Today.Year)
+        {
+            errorMsgs.Add($"Invalid year {yeararg}. Year must be between 1950 and today");
+        }
+        if (montharg < 1 || montharg > 12)
+        {
+            errorMsgs.Add($"Invalid month {montharg}. Month must be between 1 and 12");
+        }
+        if(errorMsgs.Count == 0)
+        {
+            //assume that the incoming values are good
+            //consume the service
+
+            //since the consumption could possible throw an exception
+            //  we need to use "user friendly error handling" techniques
+            try
+            {
+                shipmentList = _shipmentServices.Shipment_GetByYearAndMonth(yeararg, montharg);
+            }
+            catch(Exception ex)
+            {
+                errorMsgs.Add($"System Error: {GetInnerException(ex).Message}");
+            }
+        }
+    }
+
+    #region Pagination
+    private int GetTotalPages()
+    {
+        //the calculation must account for a uneven divide of the integer numbers (what about the remainder?)
+        int totalPages = (totalItems + itemsPerPage - 1) / itemsPerPage;
+        return totalPages;
+    }
+
+    //EventCallBack web page event handler (aka works just like a button submit)
+    private void OnPageChanged(int newPageNumber)
+    {
+        
+    }
+    #endregion
+}
