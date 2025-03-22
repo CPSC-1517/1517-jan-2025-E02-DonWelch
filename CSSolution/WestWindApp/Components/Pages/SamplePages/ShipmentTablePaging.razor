@@ -174,7 +174,7 @@ using BlazorBootstrap
     //pagination
     private int totalItems = 0;
     private int currentPageNumber = 1;
-    private int itemsPerPage = 10; //this decision is upto the developer
+    private int itemsPerPage = 5; //this decision is up to the developer
 
     protected override void OnInitialized()
     {
@@ -213,6 +213,10 @@ using BlazorBootstrap
         errorMsgs.Clear();
         shipmentList = null;
 
+        //this is a request for a new query
+        //therefore you wish to start on page one of the new query results
+        currentPageNumber = 1;
+
         //validate the incoming argument values
         if (yeararg < 1950 || yeararg > DateTime.Today.Year)
         {
@@ -231,7 +235,15 @@ using BlazorBootstrap
             //  we need to use "user friendly error handling" techniques
             try
             {
-                shipmentList = _shipmentServices.Shipment_GetByYearAndMonth(yeararg, montharg);
+                //need to call a service for
+                //    get the total number of records from on the database
+                //    get only the number of records needed to display on the current page
+                //          which is the first page for the query parameters
+                totalItems = _shipmentServices.Shipment_GetByYearAndMonthCount(yeararg, montharg);
+                shipmentList = _shipmentServices.Shipment_GetByYearAndMonthPaging(yeararg,
+                                                                                    montharg,
+                                                                                    currentPageNumber,
+                                                                                    itemsPerPage);
             }
             catch(Exception ex)
             {
@@ -251,7 +263,18 @@ using BlazorBootstrap
     //EventCallBack web page event handler (aka works just like a button submit)
     private void OnPageChanged(int newPageNumber)
     {
-        
+        //remember to update the current page number to the newly selected page number
+        currentPageNumber = newPageNumber;
+
+        //retreive the "page" from requerying your service against the database
+        //parameters required
+        //  query value parameter(s)
+        //  itemPerPage
+        //  currentPageNumber
+        shipmentList = _shipmentServices.Shipment_GetByYearAndMonthPaging(yeararg,
+                                                                                  montharg,
+                                                                                  currentPageNumber,
+                                                                                  itemsPerPage);
     }
     #endregion
 }
