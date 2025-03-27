@@ -1,0 +1,70 @@
+﻿@page "/productcrud/{productid:int?}"
+<!--
+    on the page directive above, a routing parameter has been add syntax: /routingname/{parametername:datatype}
+    this will allow an integer value to be passed to this page
+    the routing parameter (productid) needs to be declare in your code area below
+
+    if you have the situation where your receive page may or maynot receive a parameter
+        value THEN make the datatype nullable (?)
+-->
+@using WestWindSystem.Entities
+@using WestWindSystem.BLL
+
+
+<PageTitle>Product CRUD</PageTitle>
+
+<h1>Product CRUD</h1>
+
+@if (feedBackMessage != null)
+{
+    <div class="alert alert-info">
+        @feedBackMessage
+    </div>
+}
+
+
+<div>
+
+</div>
+
+@code {
+
+    private string? feedBackMessage;
+
+    [Inject]
+    private ProductServices _productServices { get; set; }
+    private Product CurrentProduct = new();
+
+    //declare a property for the routing parameter
+    //this particular property needs an annotation indicating it is a Parameter
+    [Parameter]
+    public int? productid { get; set; }
+
+    [Inject]
+    private CategoryServices _categoryServices { get; set; }
+    private List<Category> categories = new();
+
+    // private int selectedCategoryId;
+    [Inject]
+    private SupplierServices _supplierServices { get; set; }
+    private List<Supplier> suppliers = new();
+
+   
+    [Inject]
+    protected NavigationManager CurrentNavigationManager { get; set; }
+
+    protected override void OnInitialized()
+    {
+        categories = _categoryServices.Categories_Get();
+        suppliers = _supplierServices.Supplier_GetList();
+	base.OnInitialized();
+      
+    }
+
+    private Exception GetInnerException(Exception ex)
+    {
+        while (ex.InnerException != null)
+            ex = ex.InnerException;
+        return ex;
+    }
+}
