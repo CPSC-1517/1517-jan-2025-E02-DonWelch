@@ -6,12 +6,24 @@ the routing parameter (productid) needs to be declare in your code area below
 
 if you have the situation where your receive page may or maynot receive a parameter
 value THEN make the datatype nullable (?)
+
+if your parameter is a string, you do not need to specify the routing parameter datatype HOWEVER you
+will still want to place a ? (nullable) character at the end of the routing parameter name (eg stringpkey?)
 -->
 @using WestWindSystem.Entities
 @using WestWindSystem.BLL
 
 
 <PageTitle>Product CRUD</PageTitle>
+
+<!-- remember: if you have buttons to click, you need to add the rendermode directive
+IF you forget this directive when using EditForm you will receive the following error message:
+
+The POST request does not specify which form is being submitted. To fix this, ensure <form> elements have
+a @formname attribute with any unique value, or pass a FormName parameter if using <EditForm>.
+-->
+@rendermode InteractiveServer
+
 
 <h1>Product CRUD</h1>
 
@@ -23,22 +35,22 @@ value THEN make the datatype nullable (?)
 }
 
 <!-- EditForm this groups a bunch of controls as a single form
-allows for adding additonal option to integrate with your form controls
-contains a set of enhanced input controls
+              allows for adding additonal option to integrate with your form controls
+               contains a set of enhanced input controls
 
-register an EditContext instance for this form
+      register an EditContext instance for this form
 
-DataAnnotationsValidator   the DataAnnotationsValidator component is used within an
-EditForm to enable validation based on data annotations
-applied to model properties.
+      DataAnnotationsValidator   the DataAnnotationsValidator component is used within an
+                                   EditForm to enable validation based on data annotations
+                                   applied to model properties.
 
-ValidationSummary displays a list of all validation errors
-show a summary of errors at the top of the form
-errors can be from model properties or custom messages
-this is optional
+       ValidationSummary displays a list of all validation errors
+                           shown in a summary of errors at the top of the form
+                         errors can be from model properties or custom messages
+                         this is optional
 
-ValidationMessage displays the message associated with the indicated entity field
-this is optional
+       ValidationMessage displays the message associated with the indicated entity field
+                          this is optional
 
 -->
 
@@ -67,6 +79,13 @@ this is optional
             <InputText id="productname" class="form-control"
             @bind-Value="CurrentProduct.ProductName"
             placeholder="product name"/>
+            <!--
+               immediately after your input control you can add the validation
+               message tag IF you want your messages immediately after the control
+
+               you can omit this control and still display an error message associated
+               with this control with the ValidationSummary
+               -->
             <ValidationMessage For="@(() => CurrentProduct.ProductName)"/>
             <!-- foreign keys-->
             <br />
@@ -189,15 +208,33 @@ this is optional
     [Inject]
     protected NavigationManager CurrentNavigationManager { get; set; }
 
+    [Inject]
+    protected IJSRuntime jsRuntime { get; set; }
+
     //Editform properties and variables
     //will hold the instance of the data that is being maintained on the form
     private EditContext editContext;
+    //declare the ValidationMessageStore
+    private ValidationMessageStore validationMessageStore; //replaces the errorMsgs list
 
     protected override void OnInitialized()
     {
+        //if a routing parameter values was passed then we should assume that the user
+        //  has made a selection and would like to view the current data on the database
+        //therefore, we need to consume a service that will retreive the the data from the database
+        //to test a nullable field, one can use the .HasValue property of the field's datatype
+        //to obtain the nullable field data value use .Value of the property 
+        //IMPORTANT the fetch of the database record MUST be done before assigning to editContext
+        if (productid.HasValue)
+            CurrentProduct = _productServices.Product_GetByID(productid.Value);
+
         //create the EditContext instance AND tie it to the instance of the entity of the form
         editContext = new EditContext(CurrentProduct);
-
+        //create validation MessageStore instance and indicate which EditContext it is
+        //      associated with
+        //needed for custom validation within the event code and
+        //   allows the user to use the ValidationMesssage controls of the form
+        validationMessageStore = new ValidationMessageStore(editContext);
 
 
         categories = _categoryServices.Categories_Get();
@@ -215,7 +252,7 @@ this is optional
 
     private void OnCreate()
     {
-        
+
     }
     private void OnUpdate()
     {
@@ -225,12 +262,37 @@ this is optional
     {
 
     }
-    private void OnClear()
+    private async Task OnClear()
     {
+        feedBackMessage = "";
+        object[] messageline = new object[]
+        {"Clearing the page will lose all unsaved data. Are you sure you wish to continue?"};
 
+        if (await jsRuntime.InvokeAsync<bool>("confirm", messageline))
+        {
+            //remove any old custom error message place in the validation message store
+            validationMessageStore.Clear();
+
+            //clear the fields
+            //clear the current product instance of any data (not using local variables)
+            //notice that the "system" constructor is used as the entity has NO constructor code within it
+            CurrentProduct = new Product();
+
+            //IMPORTANT!!!!!!!!!!!!!!!!!!
+            //the editContext is associated with the current product instance
+            //the editContext REQUIRES to be reset to the NEW current product instance
+            editContext = new EditContext(CurrentProduct);
+        }
     }
-    private void GoToSearch()
+    private async Task GoToSearch()
     {
+        feedBackMessage = "";
+        object[] messageline = new object[]
+        {"Leaving the page will lose all unsaved data. Are you sure you wish to continue?"};
 
+        if (await jsRuntime.InvokeAsync<bool>("confirm", messageline))
+        {
+            CurrentNavigationManager.NavigateTo("categoryproducts");
+        }
     }
 }

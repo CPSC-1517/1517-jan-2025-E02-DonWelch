@@ -59,7 +59,16 @@ namespace WestWindSystem.BLL
         //    return info;
         //}
 
-       
-                            
+        //obtain the record from the database using the appropriate table and it's primary key
+        public Product Product_GetByID(int productid)
+        {
+            return _context.Products
+                           .Where(x => x.ProductID == productid)
+                           .FirstOrDefault();
+
+            //.Find checks for primary keys
+            //return _context.Products.Find(productid);
+        }
+
     }
 }
