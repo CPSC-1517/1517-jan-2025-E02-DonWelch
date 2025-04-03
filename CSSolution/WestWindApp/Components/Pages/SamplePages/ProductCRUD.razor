@@ -319,7 +319,7 @@ a @formname attribute with any unique value, or pass a FormName parameter if usi
                     //call the product services to receive the "good" data and add it to the database (CREATE!!!)
                     //call the appropriate service method and pass the current product instance
                     //the service method will return the new (identity) primary key value.
-                    int newproductid = 124; // _productServices.Product_Add(CurrentProduct);
+                    int newproductid = _productServices.Product_Add(CurrentProduct);
 
                     //if an error was thrown by the ProductServices or by the database
                     //  control will be passed to the catch
