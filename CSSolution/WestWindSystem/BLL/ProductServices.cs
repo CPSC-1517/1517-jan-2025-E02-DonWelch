@@ -264,7 +264,7 @@ namespace WestWindSystem.BLL
             //  was data actually passed to the method
             if (item == null)
             {
-                throw new ArgumentNullException("Product information was not received. Update not done.");
+                throw new ArgumentNullException("Product information was not received. Discontinued not done.");
             }
 
             //does the product still exist on the database
@@ -331,7 +331,7 @@ namespace WestWindSystem.BLL
             //  was data actually passed to the method
             if (item == null)
             {
-                throw new ArgumentNullException("Product information was not received. Update not done.");
+                throw new ArgumentNullException("Product information was not received. Removal not done.");
             }
 
             //does the pkey exist?
@@ -372,6 +372,54 @@ namespace WestWindSystem.BLL
 
             EntityEntry<Product> deleting = _context.Entry(item); 
             deleting.State =Microsoft.EntityFrameworkCore.EntityState.Deleted;
+
+            //Commit
+            // this sends ALL staged data in local memory to the database for processing
+
+            //for the update, SaveChanges will return the "number of rows affected" on the database
+            //return this value to the web page so an appropriate feedback message can be issued
+            return _context.SaveChanges();
+        }
+
+        public int Product_Activate(Product item)
+        {
+            //do any validation needed within the service method
+
+            //  was data actually passed to the method
+            if (item == null)
+            {
+                throw new ArgumentNullException("Product information was not received. Activate not done.");
+            }
+
+           
+            Product exists = null;
+
+            //retreive the current product record from the database
+            exists = _context.Products
+                            .FirstOrDefault(x => x.ProductID == item.ProductID);
+
+            //test if the record exists
+            if (exists == null)
+                throw new ArgumentException($"Product {item.ProductName}  " +
+                    $" of size {item.QuantityPerUnit} " +
+                    $" is not on file. Check for the product again");
+
+            //for the activation of the logical delete
+            //  set the appropriate field to the value indicating "active"
+            //this code is not relying on the user to have set the appropriate
+            //  field on the form
+            //  note: no OTHER field on the current record is altered
+            exists.Discontinued = false;
+
+            //after all business rules have been passed, you can assume the 
+            //  data is good to be placed on the database
+
+            //there is two steps to complete the process of adding your data to the database
+            // a) Staging
+            // b) Commit
+
+            EntityEntry<Product> updating = _context.Entry(exists); // NOTE: use the existing record instance
+            updating.State =Microsoft.EntityFrameworkCore.EntityState.Modified;
 
             //Commit
             // this sends ALL staged data in local memory to the database for processing
